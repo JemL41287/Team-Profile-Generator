@@ -4,52 +4,99 @@ const Intern = require("./lib/Intern");
 const inquirer = require("inquirer");
 const path = require("path");
 const fs = require("fs");
-​
-const OUTPUT_DIR = path.resolve(__dirname, "output")
+​const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 ​
 const render = require("./lib/htmlRenderer");
 
-const generateHTML = require("./templates/main")
-​const managerCard = require("./templates/manager")
-​const internCard = require("./templates/intern")
-​const engineerCard = require("./templates/engineer")
+let employees = [];
+let managers = [];
 
-const createTeam = [];
+function addEmployee() {
+    inquirer.prompt (
+        {
+            type: 'confirm',
+            message: 'Would you like to add an employee?',
+            name: 'add-employee'
+        }
+    ).then(function(response) {
+        if(response['add-employee']) {
+            inquirer.prompt (
+                [
+                    {
+                        type: 'input',
+                        message: 'What is the employee name?',
+                        name: 'name'
+                    },
+                    {
+                        type: 'input',
+                        message: 'What is their email address?',
+                        name: 'email'
+                    },
+                    {
+                        type: 'list',
+                        message: 'What is the employee role?',
+                        name: 'role',
+                        choices: ['Manager', 'Engineer', 'Intern']
+                    }
+                ]
+            ).then (function(data) {
+                if(data.role == 'Manager') {
+                    inquirer.prompt (
+                        {
+                            type: 'input',
+                            message: 'What is their office number?',
+                            name: 'officeNumber'
+                        }
+                    ).then(function(managerResponse) {
+                        let manager = new Manager(data.name, data.id, data.email, managerResponse.number);
+                        employees.push(manager);
+                        managers.push(manager)
+                        addEmployee();
+                    })
+                } else if(data.role == 'Intern') {
+                    inquirer.prompt (
+                        {
+                            type: 'input',
+                            message: 'What is their school?',
+                            name: 'school'
+                        }
+                    ).then(function(response) {
+                        let intern = new Intern(data.name, data.id, data.email, response.school);
+                        employees.push(intern);
+                        addEmployee();
+                    })
+                } else if (data.role == 'Engineer') {
+                    inquirer.prompt (
+                        {
+                            type: 'input',
+                            message: 'What is their GitHub username?',
+                            name: 'github'
+                        }
+                    ).then (function(response) {
+                        let engineer = new Engineer(data.name, data.id, data.email, response.github);
+                        employees.push(engineer);
+                        addEmployee();
+                    })
+                }
+            })
+        } else {
+            if(managers.length >= 1) {
+                let main = render(employees);
+                fs.writeFileSync(outputPath, main, function (err) {
+                    if(err) throw err;
+                })
+            } else {
+                console.log('Team must have one manager');
+                addEmployee();
+            }
+        }
+    })
+}
 
-const questions = [
-    {
-        type: "input",
-        name: "name",
-        message: "What is your employee's name?"
-    },
-    {
-        type: "input",
-        name: "email",
-        message: "What is your employee's email?"
-    },
-    {
-        type: "input",
-        name: "id",
-        message: "What is your employee's ID number?"
-    }
-];
+addEmployee();
 
-const internPrompt = [
-    {
-        type: "input",
-        name: "school",
-        message: "What school does your intern attend?"
-    }
-];
 
-const engineerPrompt = [
-    {
-        type: "input",
-        name: "github",
-        message: "What is your engineer's GitHub username?"
-    }
-];
 ​
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
