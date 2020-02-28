@@ -51,7 +51,7 @@ function addEmployee() {
                             name: 'officeNumber'
                         }
                     ).then(function(managerResponse) {
-                        let manager = new Manager(data.name, data.id, data.email, managerResponse.number);
+                        let manager = new Manager(data.name, data.id, data.email, managerResponse.officeNumber);
                         employees.push(manager);
                         managers.push(manager)
                         addEmployee();
@@ -93,10 +93,7 @@ function addEmployee() {
                     }
                 });
             } 
-            else {
-                console.log("Team must have one manager.");
-                addEmployee();
-            }
+
         }
     });
 }
